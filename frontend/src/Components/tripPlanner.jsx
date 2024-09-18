@@ -5,7 +5,7 @@ import axios from 'axios';
 const API_URL = 'http://localhost:5000';
 
 export default function TripPlanner() {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true); // Dark mode set as default
   const [chatInput, setChatInput] = useState('');
   const [chatResponse, setChatResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -101,15 +101,14 @@ export default function TripPlanner() {
             </div>
           )}
 
-{chatResponse && (
-            <div className="mt-4 p-4 border rounded-md bg-gray-100 dark:bg-white-800">
-              {/* Ensure the response is treated as plain text */}
+          {chatResponse && (
+            <div className="mt-4 p-4 border rounded-md 
+              ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-white text-black'}">
               <pre className="whitespace-pre-wrap">
                 {chatResponse.replace(/\*/g, '')} {/* Removes any asterisks from the response */}
               </pre>
             </div>
           )}
-
 
           <p className="text-sm text-gray-500 mt-2">
             We'd love to hear your suggestions for improvement. Click to share any feedback.
