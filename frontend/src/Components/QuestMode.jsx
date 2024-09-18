@@ -87,7 +87,8 @@ const QuestMode = () => {
   }, [userLocation]);
 
   const handlePlaceClick = (place) => {
-    setSelectedPlace(place);
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${place.lat},${place.lon}&travelmode=driving`;
+    window.open(url, "_blank");
   };
 
   function LocationMarker() {
