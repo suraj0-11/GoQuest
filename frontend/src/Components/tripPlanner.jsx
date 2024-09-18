@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Moon, Sun, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Moon, Sun, Send, User, Users } from 'lucide-react';
 import axios from 'axios';
+
+const API_URL = 'http://localhost:5000';
 
 export default function TripPlanner() {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -8,10 +10,13 @@ export default function TripPlanner() {
   const [chatResponse, setChatResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [backendStatus, setBackendStatus] = useState('Checking...');
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  useEffect(() => {
+    axios.get(`${API_URL}/test`)
+      .then(response => setBackendStatus(response.data.message))
+      .catch(error => setBackendStatus('Error connecting to backend'));
+  }, []);
 
   const handleChatSubmit = async (e) => {
     e.preventDefault();
@@ -19,20 +24,11 @@ export default function TripPlanner() {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/chat', { input: chatInput });
-      console.log('Response from server:', response.data);
-      const aiResponse = response.data.response;
-      setChatResponse(aiResponse);
+      const response = await axios.post(`${API_URL}/api/chat`, { input: chatInput });
+      setChatResponse(response.data.response);
     } catch (error) {
       console.error('Error details:', error);
-      if (error.response) {
-        setError(`Server error: ${error.response.data.error || 'Unknown error'}`);
-      } else if (error.request) {
-        setError('No response received from server. Please check your connection.');
-      } else {
-        setError(`Error: ${error.message}`);
-      }
-      setChatResponse('');
+      setError(error.response?.data?.error || 'An error occurred while processing your request.');
     } finally {
       setIsLoading(false);
     }
@@ -40,14 +36,39 @@ export default function TripPlanner() {
     setChatInput('');
   };
 
+  const toggleDarkMode = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
   return (
     <div className={`min-h-screen ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+      <header className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-2">
+          <span className="text-xl font-bold flex items-center">
+            <span className="mr-2">🌍</span>
+            <span>Go Quest</span>
+          </span>
+        </div>
+        <div className="flex items-center space-x-4">
+          <button onClick={toggleDarkMode} aria-label="Toggle Dark Mode">
+            {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
+          </button>
+          <button className="flex items-center space-x-1" aria-label="Community">
+            <Users className="w-6 h-6" />
+            <span>Community</span>
+          </button>
+          <button className="flex items-center space-x-1" aria-label="Sign In">
+            <User className="w-6 h-6" />
+            <span>Sign In</span>
+          </button>
+        </div>
+      </header>
       <main className="container mx-auto px-4 py-16 text-center">
         <h1 className="text-4xl sm:text-5xl font-bold mb-6">Your Next Journey, Optimized 🚀</h1>
         <p className="text-lg sm:text-xl mb-8">
           Build, personalize, and optimize your itineraries with our free AI trip planner.
         </p>
-
+        <p>Backend status: {backendStatus}</p>
         <div className="mt-16">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Trip Planner AI Chat is now available 🎉</h2>
         </div>
@@ -80,11 +101,15 @@ export default function TripPlanner() {
             </div>
           )}
 
-          {chatResponse && (
-            <div className="mt-4 p-4 border rounded-md bg-gray-100 dark:bg-gray-800">
-              <p>{chatResponse}</p>
+{chatResponse && (
+            <div className="mt-4 p-4 border rounded-md bg-gray-100 dark:bg-white-800">
+              {/* Ensure the response is treated as plain text */}
+              <pre className="whitespace-pre-wrap">
+                {chatResponse.replace(/\*/g, '')} {/* Removes any asterisks from the response */}
+              </pre>
             </div>
           )}
+
 
           <p className="text-sm text-gray-500 mt-2">
             We'd love to hear your suggestions for improvement. Click to share any feedback.
