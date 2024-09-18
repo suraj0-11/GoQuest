@@ -1,38 +1,57 @@
 import json
-from math import radians, sin, cos, sqrt, atan2
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from sklearn.cluster import KMeans
+from geopy.distance import great_circle
 
-# Load places data from a JSON file (or database)
-with open('./backend/places.json', 'r') as f:
-    places_data = json.load(f)
+# Load JSON data
+with open('./places.json', 'r') as file:
+    data = json.load(file)
 
-def calculate_distance(lat1, lon1, lat2, lon2):
-    R = 6371  # Radius of Earth in kilometers
-    lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
-    dlat = lat2 - lat1
-    dlon = lon2 - lon1
-    a = sin(dlat/2)*2 + cos(lat1) * cos(lat2) * sin(dlon/2)*2
-    c = 2 * atan2(sqrt(a), sqrt(1-a))
-    return R * c
+# Extract data
+places = data['places']
+names = [place['name'] for place in places]
+latitudes = [place['latitude'] for place in places]
+longitudes = [place['longitude'] for place in places]
+
+# Load pre-trained sentence transformer model from Hugging Face
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
+# Get embeddings for place names
+embeddings = model.encode(names)
+
+# Perform K-Means clustering (e.g., 5 clusters)
+num_clusters = 5
+kmeans = KMeans(n_clusters=num_clusters)
+kmeans.fit(embeddings)
+cluster_labels = kmeans.labels_
+
+# Add cluster labels to places
+for i, place in enumerate(places):
+    place['cluster'] = int(cluster_labels[i])
 
 def get_nearby_places(lat, lon, max_distance):
+    user_location = (lat, lon)
     nearby_places = []
-    for place in places_data['places']:
-        distance = calculate_distance(lat, lon, place['latitude'], place['longitude'])
+
+    for place in places:
+        place_location = (place['latitude'], place['longitude'])
+        distance = great_circle(user_location, place_location).kilometers
         if distance <= max_distance:
             nearby_places.append({
-                "name": place['name'],
-                "latitude": place['latitude'],
-                "longitude": place['longitude'],
-                "distance": round(distance, 2)
+                'name': place['name'],
+                'latitude': place['latitude'],
+                'longitude': place['longitude'],
+                'cluster': place['cluster']
             })
+
     return nearby_places
 
-def cluster_places_by_type(places):
-    # Example ML function for clustering places by type, distance, etc.
+def cluster_places_by_type(nearby_places):
     clusters = {}
-    for place in places:
-        place_type = place.get('type', 'Unknown')
-        if place_type not in clusters:
-            clusters[place_type] = []
-        clusters[place_type].append(place)
+    for place in nearby_places:
+        cluster = place['cluster']
+        if cluster not in clusters:
+            clusters[cluster] = []
+        clusters[cluster].append(place)
     return clusters
