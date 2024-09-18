@@ -1,0 +1,84 @@
+{
+  "places": [
+    {
+      "name": "Mysore Palace",
+      "latitude": 12.305163,
+      "longitude": 76.655227
+    },
+    {
+      "name": "Meenakshi Temple",
+      "latitude": 9.919504,
+      "longitude": 78.119908
+    },
+    {
+      "name": "Marina Beach",
+      "latitude": 13.049952,
+      "longitude": 80.282754
+    },
+    {
+      "name": "Hampi",
+      "latitude": 15.335011,
+      "longitude": 76.460035
+    },
+    {
+      "name": "Kumarakom Backwaters",
+      "latitude": 9.617145,
+      "longitude": 76.439714
+    },
+    {
+      "name": "Coorg",
+      "latitude": 12.419074,
+      "longitude": 75.739965
+    },
+    {
+      "name": "Varkala Beach",
+      "latitude": 8.737867,
+      "longitude": 76.703509
+    },
+    {
+      "name": "Ramanagara",
+      "latitude": 12.716693,
+      "longitude": 77.281320
+    },
+    {
+      "name": "Ooty",
+      "latitude": 11.406414,
+      "longitude": 76.693249
+    },
+    {
+      "name": "Mahabalipuram",
+      "latitude": 12.617237,
+      "longitude": 80.192212
+    },
+    {
+      "name": "Alleppey Backwaters",
+      "latitude": 9.498066,
+      "longitude": 76.338848
+    },
+    {
+      "name": "Bandipur National Park",
+      "latitude": 11.657301,
+      "longitude": 76.585556
+    },
+    {
+      "name": "Periyar Wildlife Sanctuary",
+      "latitude": 9.534439,
+      "longitude": 77.168497
+    },
+    {
+      "name": "Pondicherry",
+      "latitude": 11.941591,
+      "longitude": 79.808313
+    },
+    {
+      "name": "Rameswaram",
+      "latitude": 9.288144,
+      "longitude": 79.312929
+    },
+    {
+      "name": "Kanyakumari",
+      "latitude": 8.088306,
+      "longitude": 77.538450
+    }
+  ]
+}

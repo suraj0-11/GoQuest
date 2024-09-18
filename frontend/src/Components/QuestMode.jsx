@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -10,7 +10,10 @@ const QuestMode = () => {
   const wrapperRef = useRef(null);
   const imgRef = useRef(null);
   const heroRef = useRef(null);
+  const [userLocation, setUserLocation] = useState([51.505, -0.09]);
+  const [nearbyPlaces, setNearbyPlaces] = useState([]);
 
+  // GSAP animation effect
   useEffect(() => {
     const tl = gsap.timeline({
       scrollTrigger: {
@@ -19,7 +22,7 @@ const QuestMode = () => {
         end: "+=150%",
         pin: true,
         scrub: true,
-        markers: true,
+        markers: false, // Disable markers in production
       },
     });
 
@@ -43,9 +46,92 @@ const QuestMode = () => {
     };
   }, []);
 
+  // Geolocation and Fetch nearby places
+  useEffect(() => {
+    let watchId;
+
+    const updateServerLocation = async (lat, lon) => {
+      try {
+        await fetch("http://localhost:5000/api/update-location", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ latitude: lat, longitude: lon }),
+        });
+      } catch (error) {
+        console.error("Error updating server location:", error);
+      }
+    };
+
+    const fetchNearbyPlaces = async (lat, lon) => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/api/nearby-places?lat=${lat}&lon=${lon}&distance=5`
+        );
+        const data = await response.json();
+        setNearbyPlaces(data);
+      } catch (error) {
+        console.error("Error fetching nearby places:", error);
+      }
+    };
+
+    if ("geolocation" in navigator) {
+      watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          setUserLocation([latitude, longitude]);
+          updateServerLocation(latitude, longitude);
+          fetchNearbyPlaces(latitude, longitude);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        }
+      );
+    } else {
+      console.log("Geolocation is not supported by this browser.");
+    }
+
+    return () => {
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
+  }, []);
+
+  // Custom marker for the user's location and nearby places
+  function LocationMarker() {
+    const map = useMap();
+
+    useEffect(() => {
+      map.flyTo(userLocation, map.getZoom());
+    }, [map, userLocation]);
+
+    return (
+      <>
+        <Marker position={userLocation}>
+          <Popup>You are here</Popup>
+        </Marker>
+        {nearbyPlaces.map((place) => (
+          <Marker key={place.id} position={[place.lat, place.lon]}>
+            <Popup>
+              {place.name} - {place.distance} km away
+            </Popup>
+          </Marker>
+        ))}
+      </>
+    );
+  }
+
   return (
     <div ref={wrapperRef} className="relative w-full z-10">
       <div className="relative w-full overflow-x-hidden z-10">
+        {/* Hero Section */}
         <section
           ref={heroRef}
           className="w-full h-screen bg-center bg-no-repeat bg-cover"
@@ -55,12 +141,11 @@ const QuestMode = () => {
           }}
         ></section>
 
-        {/* Section with Leaflet Map and Chatbot */}
-        <section className="w-full h-screen bg-gradient-to-r from-purple-500 to-purple-900 flex flex-col items-center justify-around">
-          {/* Map */}
-          <div className="w-full h-1/2">
+        {/* Section with Leaflet Map and Nearby Places */}
+        <section className="w-full h-screen bg-gradient-to-r from-purple-500 to-purple-900 flex flex-col items-center justify-around p-4">
+          <div className="w-full h-1/2 mb-4">
             <MapContainer
-              center={[51.505, -0.09]}
+              center={userLocation}
               zoom={13}
               scrollWheelZoom={false}
               className="w-full h-full"
@@ -69,27 +154,30 @@ const QuestMode = () => {
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
               />
-              <Marker position={[51.505, -0.09]}>
-                <Popup>
-                  A pretty CSS3 popup. <br /> Easily customizable.
-                </Popup>
-              </Marker>
+              <LocationMarker />
             </MapContainer>
           </div>
 
-          {/* Chatbot */}
-          <div className="w-full h-1/4 bg-white rounded-lg shadow-lg p-4">
-            <h2 className="text-center text-lg font-semibold text-gray-800">
-              Chatbot
+          {/* Nearby places list */}
+          <div
+            className="w-full bg-white rounded-lg shadow-lg p-4 overflow-y-auto"
+            style={{ maxHeight: "40%" }}
+          >
+            <h2 className="text-center text-lg font-semibold text-gray-800 mb-2">
+              Nearby Places to Visit
             </h2>
-            {/* Placeholder for chatbot */}
-            <div className="h-full flex justify-center items-center">
-              <p className="text-gray-500">Chatbot will be here...</p>
-            </div>
+            <ul className="space-y-2">
+              {nearbyPlaces.map((place) => (
+                <li key={place.id} className="bg-purple-100 p-2 rounded">
+                  {place.name} - {place.distance} km away
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
       </div>
 
+      {/* Scrollable image background */}
       <div className="absolute top-0 left-0 right-0 w-full h-screen perspective-500 overflow-hidden z-20">
         <img
           ref={imgRef}
