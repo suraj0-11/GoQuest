@@ -16,6 +16,7 @@ const QuestMode = () => {
   const [userLocation, setUserLocation] = useState([12.9716, 77.5946]); // Bangalore coordinates
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
+  const [level, setLevel] = useState(1);
 
   useEffect(() => {
     const tl = gsap.timeline({
@@ -66,15 +67,40 @@ const QuestMode = () => {
 
     const fetchNearbyPlaces = async (lat, lon) => {
       try {
-        // List of places closer to Bangalore
-        const places = [
-          { name: "Nandi Hills", lat: 13.4062, lon: 77.7501 },
-          { name: "Mysore Palace", lat: 12.3052, lon: 76.6552 },
-          { name: "Hampi", lat: 15.335, lon: 76.46 },
-          { name: "Coorg", lat: 12.4191, lon: 75.7399 },
-          { name: "Kabini", lat: 12.1615, lon: 75.9674 },
-          { name: "Sakleshpur", lat: 13.2175, lon: 75.6977 },
-        ];
+        let places;
+        if (level === 1) {
+          places = [
+            { name: "Nandi Hills", lat: 13.4062, lon: 77.7501 },
+            { name: "Mysore Palace", lat: 12.3052, lon: 76.6552 },
+            { name: "Hampi", lat: 15.335, lon: 76.46 },
+            { name: "Coorg", lat: 12.4191, lon: 75.7399 },
+            { name: "Kabini", lat: 12.1615, lon: 75.9674 },
+            { name: "Sakleshpur", lat: 13.2175, lon: 75.6977 },
+          ];
+        } else if (level === 2) {
+          places = [
+            { name: "Ooty", lat: 11.4102, lon: 76.695 },
+            { name: "Kochi", lat: 9.9312, lon: 76.2673 },
+            { name: "Munnar", lat: 10.0889, lon: 77.0595 },
+            { name: "Gokarna", lat: 14.5479, lon: 74.3188 },
+            { name: "Pondicherry", lat: 11.9416, lon: 79.8083 },
+            { name: "Wayanad", lat: 11.6854, lon: 76.132 },
+            { name: "Mahabalipuram", lat: 12.6269, lon: 80.1927 },
+            { name: "Kodaikanal", lat: 10.2381, lon: 77.4892 },
+            { name: "Varkala", lat: 8.7378, lon: 76.7163 },
+            { name: "Madurai", lat: 9.9252, lon: 78.1198 },
+            { name: "Thekkady", lat: 9.5834, lon: 77.1793 },
+            { name: "Hampi", lat: 15.335, lon: 76.46 },
+            { name: "Kumarakom", lat: 9.598, lon: 76.4327 },
+            { name: "Tirupati", lat: 13.6288, lon: 79.4192 },
+            { name: "Thanjavur", lat: 10.787, lon: 79.1378 },
+            { name: "Trivandrum", lat: 8.5241, lon: 76.9366 },
+            { name: "Coorg (Madikeri)", lat: 12.4244, lon: 75.7382 },
+            { name: "Rameshwaram", lat: 9.2876, lon: 79.3129 },
+            { name: "Alleppey", lat: 9.4981, lon: 76.3388 },
+            { name: "Kanyakumari", lat: 8.0883, lon: 77.5385 },
+          ];
+        }
         setNearbyPlaces(places);
       } catch (error) {
         console.error("Error fetching nearby places:", error);
@@ -84,11 +110,15 @@ const QuestMode = () => {
 
     updateServerLocation(userLocation[0], userLocation[1]);
     fetchNearbyPlaces(userLocation[0], userLocation[1]);
-  }, [userLocation]);
+  }, [userLocation, level]);
 
   const handlePlaceClick = (place) => {
     const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${place.lat},${place.lon}&travelmode=driving`;
     window.open(url, "_blank");
+  };
+
+  const handleLevelUp = () => {
+    setLevel(2);
   };
 
   function LocationMarker() {
@@ -168,7 +198,9 @@ const QuestMode = () => {
             style={{ maxHeight: "40%" }}
           >
             <h2 className="text-center text-lg font-semibold text-gray-800 mb-2">
-              Nearby Places to Visit
+              {level === 1
+                ? "Nearby Places to Visit"
+                : "South India Destinations"}
             </h2>
             <ul className="space-y-2">
               {nearbyPlaces.map((place) => (
@@ -181,6 +213,16 @@ const QuestMode = () => {
                 </li>
               ))}
             </ul>
+            {level === 1 && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={handleLevelUp}
+                  className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+                >
+                  Explore More of South India
+                </button>
+              </div>
+            )}
           </div>
         </section>
       </div>
