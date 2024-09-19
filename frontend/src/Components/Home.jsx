@@ -41,7 +41,7 @@ export default function Header() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="text-center">
           <h1 className="text-4xl tracking-tight font-extrabold sm:text-5xl md:text-6xl">
-            Gamified travel experience
+            A Gamified Travel Experience
           </h1>
           <p className="mt-3 max-w-md mx-auto text-base sm:text-lg md:text-xl">
             Embark on exciting quests, earn rewards, and create unforgettable memories as you explore the world.
