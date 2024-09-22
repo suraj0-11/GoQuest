@@ -17,6 +17,8 @@ const QuestMode = () => {
   const [nearbyPlaces, setNearbyPlaces] = useState([]);
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [level, setLevel] = useState(1);
+  const [quests, setQuests] = useState({});
+  const [completedQuests, setCompletedQuests] = useState([]);
 
   useEffect(() => {
     const tl = gsap.timeline({
@@ -70,38 +72,68 @@ const QuestMode = () => {
         let places;
         if (level === 1) {
           places = [
-            { name: "Nandi Hills", lat: 13.4062, lon: 77.7501 },
-            { name: "Mysore Palace", lat: 12.3052, lon: 76.6552 },
-            { name: "Hampi", lat: 15.335, lon: 76.46 },
-            { name: "Coorg", lat: 12.4191, lon: 75.7399 },
-            { name: "Kabini", lat: 12.1615, lon: 75.9674 },
-            { name: "Sakleshpur", lat: 13.2175, lon: 75.6977 },
+            {
+              name: "Nandi Hills",
+              lat: 13.4062,
+              lon: 77.7501,
+              quest: "Find the hidden temple.",
+            },
+            {
+              name: "Mysore Palace",
+              lat: 12.3052,
+              lon: 76.6552,
+              quest: "Collect royal artifacts.",
+            },
+            {
+              name: "Hampi",
+              lat: 15.335,
+              lon: 76.46,
+              quest: "Discover the ancient ruins.",
+            },
+            {
+              name: "Coorg",
+              lat: 12.4191,
+              lon: 75.7399,
+              quest: "Collect coffee beans.",
+            },
+            {
+              name: "Kabini",
+              lat: 12.1615,
+              lon: 75.9674,
+              quest: "Spot a rare animal in the wild.",
+            },
+            {
+              name: "Sakleshpur",
+              lat: 13.2175,
+              lon: 75.6977,
+              quest: "Find a hidden waterfall.",
+            },
           ];
         } else if (level === 2) {
           places = [
-            { name: "Ooty", lat: 11.4102, lon: 76.695 },
-            { name: "Kochi", lat: 9.9312, lon: 76.2673 },
-            { name: "Munnar", lat: 10.0889, lon: 77.0595 },
-            { name: "Gokarna", lat: 14.5479, lon: 74.3188 },
-            { name: "Pondicherry", lat: 11.9416, lon: 79.8083 },
-            { name: "Wayanad", lat: 11.6854, lon: 76.132 },
-            { name: "Mahabalipuram", lat: 12.6269, lon: 80.1927 },
-            { name: "Kodaikanal", lat: 10.2381, lon: 77.4892 },
-            { name: "Varkala", lat: 8.7378, lon: 76.7163 },
-            { name: "Madurai", lat: 9.9252, lon: 78.1198 },
-            { name: "Thekkady", lat: 9.5834, lon: 77.1793 },
-            { name: "Hampi", lat: 15.335, lon: 76.46 },
-            { name: "Kumarakom", lat: 9.598, lon: 76.4327 },
-            { name: "Tirupati", lat: 13.6288, lon: 79.4192 },
-            { name: "Thanjavur", lat: 10.787, lon: 79.1378 },
-            { name: "Trivandrum", lat: 8.5241, lon: 76.9366 },
-            { name: "Coorg (Madikeri)", lat: 12.4244, lon: 75.7382 },
-            { name: "Rameshwaram", lat: 9.2876, lon: 79.3129 },
-            { name: "Alleppey", lat: 9.4981, lon: 76.3388 },
-            { name: "Kanyakumari", lat: 8.0883, lon: 77.5385 },
+            {
+              name: "Ooty",
+              lat: 11.4102,
+              lon: 76.695,
+              quest: "Collect tea leaves.",
+            },
+            {
+              name: "Kochi",
+              lat: 9.9312,
+              lon: 76.2673,
+              quest: "Explore the Dutch fort.",
+            },
+            // Add other level 2 places with quests
           ];
         }
         setNearbyPlaces(places);
+
+        // Initialize quest states
+        const initialQuests = {};
+        places.forEach((place) => {
+          initialQuests[place.name] = false;
+        });
+        setQuests(initialQuests);
       } catch (error) {
         console.error("Error fetching nearby places:", error);
         setNearbyPlaces([]); // Default to empty array on error
@@ -115,6 +147,13 @@ const QuestMode = () => {
   const handlePlaceClick = (place) => {
     const url = `https://www.google.com/maps/dir/?api=1&origin=${userLocation[0]},${userLocation[1]}&destination=${place.lat},${place.lon}&travelmode=driving`;
     window.open(url, "_blank");
+
+    // Mark quest as completed
+    setQuests((prevQuests) => ({
+      ...prevQuests,
+      [place.name]: true,
+    }));
+    setCompletedQuests((prev) => [...prev, place.name]);
   };
 
   const handleLevelUp = () => {
@@ -149,12 +188,24 @@ const QuestMode = () => {
                 ) / 1000
               )}{" "}
               km away
+              <br />
+              Quest: {place.quest} <br />
+              {quests[place.name] ? "Quest Completed!" : "Not Completed"}
             </Popup>
           </Marker>
         ))}
       </>
     );
   }
+
+  // Function to determine how many places to show based on completed quests
+  const getVisiblePlaces = () => {
+    const completedCount = completedQuests.length;
+    if (completedCount === 0) return nearbyPlaces.slice(0, 3);
+    if (completedCount === 1) return nearbyPlaces.slice(0, 5);
+    if (completedCount === 2) return nearbyPlaces.slice(0, 7);
+    return nearbyPlaces; // Show all places if 3 or more quests are completed
+  };
 
   return (
     <div ref={wrapperRef} className="relative w-full z-10">
@@ -203,13 +254,14 @@ const QuestMode = () => {
                 : "South India Destinations"}
             </h2>
             <ul className="space-y-2">
-              {nearbyPlaces.map((place) => (
+              {getVisiblePlaces().map((place) => (
                 <li
                   key={place.name}
                   className="bg-purple-100 p-2 rounded cursor-pointer"
                   onClick={() => handlePlaceClick(place)}
                 >
-                  {place.name}
+                  {place.name} -{" "}
+                  {quests[place.name] ? "Completed" : "Incomplete"}
                 </li>
               ))}
             </ul>
